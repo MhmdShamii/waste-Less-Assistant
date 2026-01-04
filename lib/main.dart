@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'home.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,7 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Waste Management App',
       debugShowCheckedModeBanner: false,
-      home: Placeholder(),
+      home: Home(),
     );
   }
 }
