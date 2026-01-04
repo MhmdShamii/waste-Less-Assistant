@@ -26,6 +26,35 @@ class Item {
     );
   }
 
+  static Future<String> addItem({
+    required int userId,
+    required String name,
+    required int categoryId,
+    required String expiryDate,
+  }) async {
+    final url = Uri.parse(
+      "http://mhmdshami.atwebpages.com/backend/api/add_item.php",
+    );
+
+    final response = await http.post(
+      url,
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "user_id": userId,
+        "name": name,
+        "category_id": categoryId,
+        "expiry_date": expiryDate,
+      }),
+    );
+
+    final data = jsonDecode(response.body);
+    if (response.statusCode == 200 && data['message'] != null) {
+      return data['message']; // success
+    } else {
+      throw Exception(data['error'] ?? "Failed to add item");
+    }
+  }
+
   // Fetch items for a user
   static Future<List<Item>> fetchItems(int userId) async {
     const String apiUrl =

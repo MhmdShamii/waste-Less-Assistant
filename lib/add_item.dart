@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'widgets/custom_button.dart';
 import 'classes/user.dart';
+import 'classes/category.dart';
+import 'classes/item.dart';
 
 class AddItemPage extends StatefulWidget {
   final User user;
@@ -13,12 +15,32 @@ class AddItemPage extends StatefulWidget {
 }
 
 class _AddItemPageState extends State<AddItemPage> {
-  TextEditingController name = TextEditingController();
-  TextEditingController category = TextEditingController();
-  TextEditingController expiryDate = TextEditingController();
+  TextEditingController nameController = TextEditingController();
+  TextEditingController expiryController = TextEditingController();
   bool loading = false;
 
-  // New: Show date picker
+  List<Category> categories = [];
+  Category? selectedCategory;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategories();
+  }
+
+  // Load categories from backend
+  void _loadCategories() async {
+    try {
+      categories = await Category.fetchCategories();
+      setState(() {});
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Failed to load categories")));
+    }
+  }
+
+  // Pick expiry date
   Future<void> pickDate() async {
     DateTime? selectedDate = await showDatePicker(
       context: context,
@@ -29,13 +51,16 @@ class _AddItemPageState extends State<AddItemPage> {
 
     if (selectedDate != null) {
       setState(() {
-        expiryDate.text = selectedDate.toIso8601String().split('T')[0];
+        expiryController.text = selectedDate.toIso8601String().split('T')[0];
       });
     }
   }
 
-  void addItem() async {
-    if (name.text.isEmpty || category.text.isEmpty || expiryDate.text.isEmpty) {
+  // Submit item using Item.addItem method
+  void submitItem() async {
+    if (nameController.text.isEmpty ||
+        selectedCategory == null ||
+        expiryController.text.isEmpty) {
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Please fill all fields")));
@@ -45,36 +70,23 @@ class _AddItemPageState extends State<AddItemPage> {
     setState(() => loading = true);
 
     try {
-      var url = Uri.parse(
-        "http://mhmdshami.atwebpages.com/backend/api/add_item.php",
+      await Item.addItem(
+        userId: widget.user.id,
+        name: nameController.text.trim(),
+        categoryId: selectedCategory!.id,
+        expiryDate: expiryController.text.trim(),
       );
 
-      var response = await http.post(
-        url,
-        headers: {"Content-Type": "application/json"},
-        body: jsonEncode({
-          "user_id": widget.user.id,
-          "name": name.text.trim(),
-          "category": category.text.trim(),
-          "expiry_date": expiryDate.text.trim(),
-        }),
-      );
+      setState(() {
+        loading = false;
+        nameController.clear();
+        expiryController.clear();
+        selectedCategory = null;
+      });
 
-      setState(() => loading = false);
-
-      var data = jsonDecode(response.body);
-      if (response.statusCode == 200 && data['message'] != null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(data['message'])));
-        name.clear();
-        category.clear();
-        expiryDate.clear();
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(data['error'] ?? "Failed to add item")),
-        );
-      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Item added successfully")));
     } catch (e) {
       setState(() => loading = false);
       ScaffoldMessenger.of(
@@ -95,8 +107,9 @@ class _AddItemPageState extends State<AddItemPage> {
         padding: EdgeInsets.all(16),
         child: Column(
           children: [
+            // Item Name
             TextField(
-              controller: name,
+              controller: nameController,
               decoration: InputDecoration(
                 labelText: "Item Name",
                 border: OutlineInputBorder(
@@ -105,20 +118,36 @@ class _AddItemPageState extends State<AddItemPage> {
               ),
             ),
             SizedBox(height: 16),
-            TextField(
-              controller: category,
-              decoration: InputDecoration(
-                labelText: "Category",
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
+
+            // Category dropdown
+            categories.isEmpty
+                ? CircularProgressIndicator()
+                : DropdownButtonFormField<Category>(
+                    value: selectedCategory,
+                    hint: Text("Select Category"),
+                    items: categories.map((cat) {
+                      return DropdownMenuItem<Category>(
+                        value: cat,
+                        child: Text(cat.name),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedCategory = value;
+                      });
+                    },
+                    decoration: InputDecoration(
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
             SizedBox(height: 16),
-            // Expiry date field with calendar
+
+            // Expiry Date
             TextField(
-              controller: expiryDate,
-              readOnly: true, // user cannot type manually
+              controller: expiryController,
+              readOnly: true,
               decoration: InputDecoration(
                 labelText: "Expiry Date",
                 border: OutlineInputBorder(
@@ -129,12 +158,14 @@ class _AddItemPageState extends State<AddItemPage> {
               onTap: pickDate,
             ),
             SizedBox(height: 24),
+
+            // Submit button
             loading
                 ? CircularProgressIndicator()
                 : CustomButton(
                     text: "Add Item",
                     color: Colors.green,
-                    onTap: addItem,
+                    onTap: submitItem,
                   ),
           ],
         ),
