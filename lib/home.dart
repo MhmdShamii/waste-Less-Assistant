@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'widgets/custom_button.dart';
 import 'add_item.dart';
+import 'itemsList.dart';
 import 'classes/user.dart';
 
 class HomePage extends StatelessWidget {
@@ -51,7 +52,14 @@ class HomePage extends StatelessWidget {
               text: "View Items",
               color: Colors.orange,
               icon: Icons.list_alt,
-              onTap: () {},
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ItemsListPage(userId: user.id),
+                  ),
+                );
+              },
             ),
             SizedBox(height: 20),
             CustomButton(
