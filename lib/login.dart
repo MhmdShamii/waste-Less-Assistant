@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'register.dart';
+import 'home.dart';
+import 'widgets/custom_button.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -20,9 +23,7 @@ class _LoginPageState extends State<LoginPage> {
       return;
     }
 
-    setState(() {
-      loading = true;
-    });
+    setState(() => loading = true);
 
     try {
       var url = Uri.parse(
@@ -38,16 +39,15 @@ class _LoginPageState extends State<LoginPage> {
         }),
       );
 
-      setState(() {
-        loading = false;
-      });
+      setState(() => loading = false);
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
-        ScaffoldMessenger.of(
+        String name = data['user']['name'];
+        Navigator.pushReplacement(
           context,
-        ).showSnackBar(SnackBar(content: Text(data['message'])));
-        // You can navigate to a Home screen here if you want
+          MaterialPageRoute(builder: (_) => HomePage(name: name)),
+        );
       } else {
         var data = jsonDecode(response.body);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -55,9 +55,7 @@ class _LoginPageState extends State<LoginPage> {
         );
       }
     } catch (e) {
-      setState(() {
-        loading = false;
-      });
+      setState(() => loading = false);
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text("Error: $e")));
@@ -67,24 +65,62 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Login")),
+      backgroundColor: Colors.grey[100],
       body: Padding(
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.all(24),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Text(
+              "Waste Less Assistant",
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
+                color: Colors.green[800],
+              ),
+            ),
+            SizedBox(height: 40),
             TextField(
               controller: email,
-              decoration: InputDecoration(labelText: "Email"),
+              decoration: InputDecoration(
+                labelText: "Email",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
+            SizedBox(height: 16),
             TextField(
               controller: password,
               obscureText: true,
-              decoration: InputDecoration(labelText: "Password"),
+              decoration: InputDecoration(
+                labelText: "Password",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 24),
             loading
                 ? CircularProgressIndicator()
-                : ElevatedButton(onPressed: login, child: Text("Login")),
+                : CustomButton(
+                    text: "Login",
+                    color: Colors.green,
+                    onTap: login,
+                  ),
+            SizedBox(height: 16),
+            TextButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => RegisterPage()),
+                );
+              },
+              child: Text(
+                "Create an account",
+                style: TextStyle(color: Colors.green[700]),
+              ),
+            ),
           ],
         ),
       ),
