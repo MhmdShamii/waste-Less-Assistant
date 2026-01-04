@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'widgets/custom_button.dart';
+import 'add_item.dart';
+import 'classes/user.dart';
 
 class HomePage extends StatelessWidget {
-  final String name;
+  final User user;
 
-  HomePage({required this.name});
+  HomePage({required this.user});
 
   @override
   Widget build(BuildContext context) {
@@ -13,7 +15,6 @@ class HomePage extends StatelessWidget {
       appBar: AppBar(
         title: Text("Waste Less Assistant"),
         backgroundColor: Colors.green[700],
-        elevation: 0,
       ),
       body: Padding(
         padding: EdgeInsets.all(16),
@@ -26,7 +27,7 @@ class HomePage extends StatelessWidget {
             ),
             SizedBox(height: 4),
             Text(
-              "$name!",
+              user.name,
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
@@ -39,7 +40,10 @@ class HomePage extends StatelessWidget {
               color: Colors.green,
               icon: Icons.add_box,
               onTap: () {
-                // navigate to add item screen
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => AddItemPage(user: user)),
+                );
               },
             ),
             SizedBox(height: 20),
@@ -47,9 +51,7 @@ class HomePage extends StatelessWidget {
               text: "View Items",
               color: Colors.orange,
               icon: Icons.list_alt,
-              onTap: () {
-                // navigate to items list screen
-              },
+              onTap: () {},
             ),
             SizedBox(height: 20),
             CustomButton(

@@ -1,9 +1,10 @@
+import 'classes/user.dart';
+import 'home.dart';
+import 'register.dart';
+import 'widgets/custom_button.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'register.dart';
-import 'home.dart';
-import 'widgets/custom_button.dart';
 
 class LoginPage extends StatefulWidget {
   @override
@@ -43,10 +44,14 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.statusCode == 200) {
         var data = jsonDecode(response.body);
-        String name = data['user']['name'];
+
+        // create a User object
+        User user = User.fromJson(data['user']);
+
+        // navigate to HomePage with user object
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (_) => HomePage(name: name)),
+          MaterialPageRoute(builder: (_) => HomePage(user: user)),
         );
       } else {
         var data = jsonDecode(response.body);
