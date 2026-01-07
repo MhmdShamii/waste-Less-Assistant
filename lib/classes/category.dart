@@ -9,7 +9,7 @@ class Category {
 
   factory Category.fromJson(Map<String, dynamic> json) {
     return Category(
-      id: int.parse(json['id'].toString()), // <-- convert to int safely
+      id: int.parse(json['id'].toString()),
       name: json['name'].toString(),
     );
   }
